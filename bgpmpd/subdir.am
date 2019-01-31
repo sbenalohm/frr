@@ -1,0 +1,19 @@
+#
+# bgpmpd
+#
+
+if BGPMPD
+noinst_LIBRARIES += bgpmpd/libbgpmp.a
+sbin_PROGRAMS += bgpmpd/bgpmpd
+endif
+
+bgpmpd_libbgpmp_a_SOURCES = \
+    bgpmpd/bgpmp_zebra.c \
+    # end
+
+noinst_HEADERS += \
+    bgpmpd/bgpmp_zebra.h \
+    # end
+
+bgpmpd_bgpmpd_SOURCES = bgpmpd/bgpmp_main.c
+bgpmpd_bgpmpd_LDADD = bgpmpd/libbgpmp.a lib/libfrr.la @LIBCAP@

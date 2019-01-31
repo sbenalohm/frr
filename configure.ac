@@ -402,6 +402,8 @@ AC_ARG_ENABLE([zebra],
   AS_HELP_STRING([--disable-zebra], [do not build zebra daemon]))
 AC_ARG_ENABLE([bgpd],
   AS_HELP_STRING([--disable-bgpd], [do not build bgpd]))
+AC_ARG_ENABLE([bgpmpd],
+  AS_HELP_STRING([--disable-bgpmpd], [do not build bgpmpd]))
 AC_ARG_ENABLE([ripd],
   AS_HELP_STRING([--disable-ripd], [do not build ripd]))
 AC_ARG_ENABLE([ripngd],
@@ -1441,6 +1443,7 @@ else
   BGPD="bgpd"
 fi
 AM_CONDITIONAL([BGPD], [test "x$BGPD" = "xbgpd"])
+AM_CONDITIONAL([BGPMPD], [test 1])
 
 AM_CONDITIONAL([RIPD], [test "${enable_ripd}" != "no"])
 AM_CONDITIONAL([OSPFD], [test "${enable_ospfd}" != "no"])

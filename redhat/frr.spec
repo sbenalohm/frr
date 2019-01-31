@@ -53,8 +53,8 @@
 
 #### Version String tweak
 # Remove invalid characters form version string and replace with _
-%{expand: %%global rpmversion %(echo '@VERSION@' | tr [:blank:]- _ )}
-%define         frrversion   @VERSION@
+%{expand: %%global rpmversion %(echo '7.1-dev-MyOwnFRRVersion' | tr [:blank:]- _ )}
+%define         frrversion   7.1-dev-MyOwnFRRVersion
 
 #### Check for systemd or init.d (upstart)
 # Check for init.d (upstart) as used in CentOS 6 or systemd (ie CentOS 7)

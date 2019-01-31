@@ -33,7 +33,7 @@ V_PATH=/var/run/frr
 # Local Daemon selection may be done by using /etc/frr/daemons.
 # See /usr/share/doc/frr/README.Debian.gz for further information.
 # Keep zebra first and do not list watchfrr!
-DAEMONS="zebra bgpd ripd ripngd ospfd ospf6d isisd pimd pbrd ldpd nhrpd eigrpd babeld staticd sharpd bfdd fabricd"
+DAEMONS="zebra bgpd bgpmpd ripd ripngd ospfd ospf6d isisd pimd pbrd ldpd nhrpd eigrpd babeld staticd sharpd bfdd fabricd"
 MAX_INSTANCES=5
 RELOAD_SCRIPT=/usr/lib/frr/frr-reload.py
 
@@ -110,6 +110,8 @@ start()
     local dmn inst
     dmn="$1"
     inst="$2"
+
+    echo "$1" >> ~/frr_echo_log.log
 
     ulimit -n $MAX_FDS > /dev/null 2> /dev/null
     if [ "$dmn" = "watchfrr" ]; then

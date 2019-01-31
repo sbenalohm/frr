@@ -39,6 +39,7 @@ watchfrr_options="-r '/usr/lib/frr/frr restart %s' -s '/usr/lib/frr/frr start %s
 #
 zebra=no
 bgpd=no
+bgpmpd=no
 ospfd=no
 ospf6d=no
 ripd=no
@@ -60,6 +61,7 @@ fabricd=no
 #
 zebra_options=("-A 127.0.0.1")
 bgpd_options=("-A 127.0.0.1")
+bgpmpd_options=("-A 127.0.0.1 -c 127.0.0.1")
 ospfd_options=("-A 127.0.0.1")
 ospf6d_options=("-A ::1")
 ripd_options=("-A 127.0.0.1")
