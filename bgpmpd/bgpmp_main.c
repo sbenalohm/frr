@@ -9,7 +9,15 @@
 #include "config.h"
 #include "getopt.h"
 
+// For socket server
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "bgpmp_zebra.h"
+
+char *collector_address;
 
 zebra_capabilities_t _caps_p[] = {};
 
@@ -34,10 +42,15 @@ static void sighup(void)
 	zlog_info("SIGHUP received");
 }
 
+static void send_message_to_bgpmp_server(char *message, uint16_t len);
+static void send_hello_signal_to_bgpmp_server(void);
+
 /* SIGINT / SIGTERM handler. */
 static void sigint(void)
 {
 	zlog_notice("Terminating on signal");
+
+	send_hello_signal_to_bgpmp_server();
 
 	exit(0);
 }
@@ -46,6 +59,32 @@ static void sigint(void)
 static void sigusr1(void)
 {
 	zlog_rotate();
+}
+
+static void send_message_to_bgpmp_server(char *message, uint16_t len)
+{
+	char buffer[1024];
+	struct sockaddr_in serverAddr;
+
+	int clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_port = htons(7891);
+	serverAddr.sin_addr.s_addr = inet_addr(collector_address);
+	memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
+
+	socklen_t addr_size = sizeof serverAddr;
+
+	connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
+
+	strncpy(buffer, message, len);
+	send(clientSocket, buffer, len, 0);
+
+	close(clientSocket);	
+}
+
+static void send_hello_signal_to_bgpmp_server()
+{
+	send_message_to_bgpmp_server("Hello World\n", 13);	
 }
 
 struct quagga_signal_t bgpmp_signals[] = {
@@ -80,16 +119,10 @@ static const struct option longopts[] = {
 
 int main(int argc, char **argv, char **envp)
 {
-	zlog_err("Starting BGPMP...");
-
-	char *collector_address = NULL;
-
 	frr_preinit(&bgpmpd_di, argc, argv);
 
 	frr_opt_add("c", longopts,
 		"  -c, --collector		Set address to forward BGP messages to.");
-
-	// zlog_set_level(ZLOG_DEST_FILE, LOG_DEBUG);
 
 	while (1) {
 		int opt;
@@ -111,6 +144,11 @@ int main(int argc, char **argv, char **envp)
 		}
 	}
 	
+	if (!collector_address)
+	{
+		collector_address = "172.17.23.93";
+	}
+
 	master = frr_init();
 
 	bgpmp_zebra_init(master);
