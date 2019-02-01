@@ -29,7 +29,7 @@ FRR_VTY_GROUP="frrvty" # frrvty
 # - keep zebra first
 # - watchfrr does NOT belong in this list
 
-DAEMONS="zebra bgpd ripd ripngd ospfd ospf6d isisd babeld pimd ldpd nhrpd eigrpd sharpd pbrd staticd bfdd fabricd"
+DAEMONS="zebra bgpd bgpmpd ripd ripngd ospfd ospf6d isisd babeld pimd ldpd nhrpd eigrpd sharpd pbrd staticd bfdd fabricd"
 RELOAD_SCRIPT="$D_PATH/frr-reload.py"
 
 #
