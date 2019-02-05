@@ -24,6 +24,8 @@ struct bgpmp_process_queue {
     STAILQ_HEAD(, bgpmp_node) pqueue;
 };
 
+extern void bgpmp_add_to_wq(unsigned int msg);
+
 extern void bgpmp_master_init(struct thread_master *master);
 
 extern void bgpmp_process_queue_init(void);

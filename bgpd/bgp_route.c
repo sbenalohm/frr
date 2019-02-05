@@ -2544,11 +2544,6 @@ static struct bgp_process_queue *bgp_processq_alloc(struct bgp *bgp)
 	pqnode = XCALLOC(MTYPE_BGP_PROCESS_QUEUE,
 			 sizeof(struct bgp_process_queue));
 
-
-
-	/* retrieve necessary info, send to BMP queue */
-
-
 	/* unlocked in bgp_processq_del */
 	pqnode->bgp = bgp_lock(bgp);
 	STAILQ_INIT(&pqnode->pqueue);

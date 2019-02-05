@@ -2,15 +2,22 @@
 #include "string.h"
 
 #include "log.h"
+#include "workqueue.h"
 #include "zclient.h"
 
-#include "bgpmp_zebra.h"
+#include "bgpmpd/bgpmpd.h"
+#include "bgpmpd/bgpmp_zebra.h"
 
 /* Zebra structure to hold current status. */
 struct zclient *zclient = NULL;
 
 /* For registering threads. */
 // extern struct thread_master *master;
+
+static void send_message_to_bgpmp_wq(unsigned int msg)
+{
+	
+}
 
 static void send_message_to_bgpmp_server(char *message, uint16_t len)
 {
@@ -60,6 +67,9 @@ static int bgpmp_zebra_read_route(int command, struct zclient *zclient,
 			    zebra_size_t length, vrf_id_t vrf_id)
 {
     zlog_err("In BGPMP_ZEBRA_READ_ROUTE.");
+
+	// Testing adding to workqueue
+	bgpmp_add_to_wq(2);
 
 	char msg[1024];
 	int slen = sprintf(msg, "In BGPMP_ZEBRA_READ_ROUTE, %hu", length);
