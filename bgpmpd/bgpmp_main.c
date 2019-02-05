@@ -19,8 +19,9 @@
 
 char *collector_address;
 
-zebra_capabilities_t _caps_p[] = {};
-
+static zebra_capabilities_t _caps_p[] = {ZCAP_BIND, ZCAP_NET_RAW,
+					 ZCAP_NET_ADMIN, ZCAP_SYS_ADMIN};
+					 
 struct zebra_privs_t bgpmp_privs = {
 #if defined(FRR_USER) && defined(FRR_GROUP)
 	.user = FRR_USER,

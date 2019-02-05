@@ -1,4 +1,5 @@
 #include <zebra.h>
+#include "string.h"
 
 #include "log.h"
 #include "zclient.h"
@@ -11,8 +12,47 @@ struct zclient *zclient = NULL;
 /* For registering threads. */
 // extern struct thread_master *master;
 
+static void send_message_to_bgpmp_server(char *message, uint16_t len)
+{
+	char buffer[1024];
+	struct sockaddr_in serverAddr;
+
+	int clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_port = htons(7891);
+	serverAddr.sin_addr.s_addr = inet_addr("172.17.23.93");
+	memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
+
+	socklen_t addr_size = sizeof serverAddr;
+
+	connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
+
+	strncpy(buffer, message, len);
+	send(clientSocket, buffer, len, 0);
+
+	close(clientSocket);	
+}
+
 static void bgpmp_zebra_connected(struct zclient *zclient)
 {
+	// /* We need router-id information. */
+	// zebra_message_send(zclient, ZEBRA_ROUTER_ID_ADD, VRF_DEFAULT);
+
+	// /* We need interface information. */
+	// zebra_message_send(zclient, ZEBRA_INTERFACE_ADD, VRF_DEFAULT);
+
+
+
+	// zebra_message_send(zclient, ZEBRA_ROUTE_ADD, VRF_DEFAULT);
+	// zebra_message_send(zclient, ZEBRA_NEXTHOP_UPDATE, VRF_DEFAULT);
+	// zebra_message_send(zclient, ZEBRA_HELLO, VRF_DEFAULT);
+	// zebra_message_send(zclient, ZEBRA_REDISTRIBUTE_ROUTE_ADD, VRF_DEFAULT);
+	// zebra_message_send(zclient, ZEBRA_REDISTRIBUTE_ADD, VRF_DEFAULT);
+
+	zclient_send_reg_requests(zclient, VRF_DEFAULT);
+	// zclient_send_rnh(zclient, ZEBRA_IMPORT_ROUTE_REGISTER);
+	// zclient_send_rnh(zclient, ZEBRA_NEXTHOP_REGISTER);
+
     zlog_err("Connected BGPMP to Zebra.");
 }
 
@@ -20,6 +60,11 @@ static int bgpmp_zebra_read_route(int command, struct zclient *zclient,
 			    zebra_size_t length, vrf_id_t vrf_id)
 {
     zlog_err("In BGPMP_ZEBRA_READ_ROUTE.");
+
+	char msg[1024];
+	int slen = sprintf(msg, "In BGPMP_ZEBRA_READ_ROUTE, %hu", length);
+
+	send_message_to_bgpmp_server(msg, slen);
 	return 0;
 }
 
