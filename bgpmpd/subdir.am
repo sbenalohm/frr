@@ -9,10 +9,12 @@ endif
 
 bgpmpd_libbgpmp_a_SOURCES = \
     bgpmpd/bgpmp_zebra.c \
+    bgpmpd/bgpmpd.c \
     # end
 
 noinst_HEADERS += \
     bgpmpd/bgpmp_zebra.h \
+    bgpmpd/bgpmpd.h \
     # end
 
 bgpmpd_bgpmpd_SOURCES = bgpmpd/bgpmp_main.c

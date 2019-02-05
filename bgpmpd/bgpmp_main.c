@@ -15,7 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bgpmp_zebra.h"
+#include "bgpmpd/bgpmp_zebra.h"
+#include "bgpmpd/bgpmpd.h"
 
 char *collector_address;
 
@@ -34,8 +35,8 @@ struct zebra_privs_t bgpmp_privs = {
 	.cap_num_p = array_size(_caps_p),
 	.cap_num_i = 0};
 
-/* Master of threads. */
-struct thread_master *master;
+// /* Master of threads. */
+// struct thread_master *master;
 
 /* SIGHUP handler. */
 static void sighup(void)
@@ -150,12 +151,13 @@ int main(int argc, char **argv, char **envp)
 		collector_address = "172.17.23.93";
 	}
 
-	master = frr_init();
+	bgpmp_master_init(frr_init());
+	// master = frr_init();
 
-	bgpmp_zebra_init(master);
+	bgpmp_zebra_init(bm->master);
 
 	frr_config_fork();
-	frr_run(master);
+	frr_run(bm->master);
 
 	/* Not reached. */
 	return 0;
