@@ -85,6 +85,8 @@
 #include "bgpd/bgp_route_clippy.c"
 #endif
 
+#include "bgpd/bgpmp/bgpmp.h"
+
 /* Extern from bgp_dump.c */
 extern const char *bgp_origin_str[];
 extern const char *bgp_origin_long_str[];
@@ -2590,6 +2592,14 @@ void bgp_process(struct bgp *bgp, struct bgp_node *rn, afi_t afi, safi_t safi)
 	assert(STAILQ_NEXT(rn, pq) == NULL);
 	STAILQ_INSERT_TAIL(&pqnode->pqueue, rn, pq);
 	pqnode->queued++;
+
+
+
+
+	/* BGPMP Queue */
+	bgpmp_add_to_wq(bgp->as);
+
+
 
 	if (!pqnode_reuse)
 		work_queue_add(wq, pqnode);
