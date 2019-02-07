@@ -89,6 +89,8 @@
 #include "bgpd/bgp_evpn_private.h"
 #include "bgpd/bgp_mac.h"
 
+#include "bgpd/bgpmp/bgpmp.h"
+
 DEFINE_MTYPE_STATIC(BGPD, PEER_TX_SHUTDOWN_MSG, "Peer shutdown message (TX)");
 DEFINE_MTYPE_STATIC(BGPD, BGP_EVPN_INFO, "BGP EVPN instance information");
 DEFINE_QOBJ_TYPE(bgp_master)
@@ -7834,6 +7836,13 @@ void bgp_master_init(struct thread_master *master)
 
 	bgp_process_queue_init();
 
+	/* BGPMP */
+	// bm->bgpmp_master = frr_init();
+	// NEW PTHREAD WILL PROVIDE OWN THREAD_MASTER
+	// bgpmp_process_queue_init();
+
+
+
 	bgp_mac_init();
 	/* init the rd id space.
 	   assign 0th index in the bitfield,
@@ -7897,10 +7906,13 @@ static const struct cmd_variable_handler bgp_viewvrf_var_handlers[] = {
 struct frr_pthread *bgp_pth_io;
 struct frr_pthread *bgp_pth_ka;
 
+struct frr_pthread *bgp_pth_bgpmp;
+
 static void bgp_pthreads_init(void)
 {
 	assert(!bgp_pth_io);
 	assert(!bgp_pth_ka);
+	assert(!bgp_pth_bgpmp);
 
 	frr_pthread_init();
 
@@ -7912,18 +7924,25 @@ static void bgp_pthreads_init(void)
 		.start = bgp_keepalives_start,
 		.stop = bgp_keepalives_stop,
 	};
+	struct frr_pthread_attr bgpmp = {
+		.start = frr_pthread_attr_default.start,
+		.stop = frr_pthread_attr_default.stop,
+	};
 	bgp_pth_io = frr_pthread_new(&io, "BGP I/O thread", "bgpd_io");
 	bgp_pth_ka = frr_pthread_new(&ka, "BGP Keepalives thread", "bgpd_ka");
+	bgp_pth_bgpmp = frr_pthread_new(&bgpmp, "BGPMP thread", "bgpmp");
 }
 
 void bgp_pthreads_run(void)
 {
 	frr_pthread_run(bgp_pth_io, NULL);
 	frr_pthread_run(bgp_pth_ka, NULL);
+	frr_pthread_run(bgp_pth_bgpmp, NULL);
 
 	/* Wait until threads are ready. */
 	frr_pthread_wait_running(bgp_pth_io);
 	frr_pthread_wait_running(bgp_pth_ka);
+	frr_pthread_wait_running(bgp_pth_bgpmp);
 }
 
 void bgp_pthreads_finish(void)
@@ -8020,6 +8039,9 @@ void bgp_terminate(void)
 
 	if (bm->process_main_queue)
 		work_queue_free_and_null(&bm->process_main_queue);
+
+	if (bm->bgpmp_process_queue)
+		work_queue_free_and_null(&bm->bgpmp_process_queue);		
 
 	if (bm->t_rmap_update)
 		BGP_TIMER_OFF(bm->t_rmap_update);

@@ -96,6 +96,14 @@ bgpd_libbgp_a_SOURCES = \
 	bgpd/bgpd.c \
 	# end
 
+
+# Should add if for BGPMP
+bgpd_libbgp_a_SOURCES += \
+	bgpd/bgpmp/bgpmp.c \
+	bgpd/bgpmp/bgpmp_memory.c \
+	# end
+
+
 if ENABLE_BGP_VNC
 bgpd_libbgp_a_SOURCES += \
 	bgpd/rfapi/bgp_rfapi_cfg.c \
@@ -186,6 +194,9 @@ noinst_HEADERS += \
 	bgpd/rfapi/vnc_export_bgp_p.h \
 	bgpd/rfapi/vnc_import_bgp_p.h \
 	bgpd/bgp_vnc_types.h \
+	\
+	bgpd/bgpmp/bgpmp.h \
+	bgpd/bgpmp/bgpmp_memory.h \
 	# end
 
 bgpd_bgpd_SOURCES = bgpd/bgp_main.c

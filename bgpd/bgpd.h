@@ -102,6 +102,8 @@ enum bgp_af_index {
 extern struct frr_pthread *bgp_pth_io;
 extern struct frr_pthread *bgp_pth_ka;
 
+extern struct frr_pthread *bgp_pth_bgpmp;
+
 /* BGP master for system wide configurations and variables.  */
 struct bgp_master {
 	/* BGP instance list.  */
@@ -112,6 +114,7 @@ struct bgp_master {
 
 	/* work queues */
 	struct work_queue *process_main_queue;
+	struct work_queue *bgpmp_process_queue;
 
 	/* Listening sockets */
 	struct list *listen_sockets;

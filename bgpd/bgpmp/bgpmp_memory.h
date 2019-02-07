@@ -1,0 +1,10 @@
+#ifndef __BGPMP_MEMORY_H__
+#define __BGPMP_MEMORY_H__
+
+#include "memory.h"
+
+DECLARE_MGROUP(BGPMPD)
+DECLARE_MTYPE(BGPMP_PROCESS_QUEUE)
+DECLARE_MTYPE(BGPMP_NODE)
+
+#endif /* __BGPMP_MEMORY_H__ */
