@@ -7836,13 +7836,6 @@ void bgp_master_init(struct thread_master *master)
 
 	bgp_process_queue_init();
 
-	/* BGPMP */
-	// bm->bgpmp_master = frr_init();
-	// NEW PTHREAD WILL PROVIDE OWN THREAD_MASTER
-	// bgpmp_process_queue_init();
-
-
-
 	bgp_mac_init();
 	/* init the rd id space.
 	   assign 0th index in the bitfield,
@@ -8004,6 +7997,9 @@ void bgp_init(unsigned short instance)
 
 	/* BFD init */
 	bgp_bfd_init();
+
+	/* BGPMP init */
+	bgpmp_process_queue_init();
 
 	cmd_variable_handler_register(bgp_viewvrf_var_handlers);
 }
