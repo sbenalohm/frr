@@ -63,6 +63,8 @@
 #include "bgpd/bgp_keepalives.h"
 #include "bgpd/bgp_flowspec.h"
 
+#include "bgpd/bgpmp/bgpmp.h"
+
 /**
  * Sets marker and type fields for a BGP message.
  *
@@ -246,6 +248,11 @@ void bgp_update_implicit_eors(struct peer *peer)
 		peer->bgp->implicit_eors++;
 		bgp_check_update_delay(peer->bgp);
 	}
+
+	// Peer up notification (?)
+	bgpmp_add_peer_up_to_wq(peer->su.sin.sin_addr.s_addr, 2222, peer->su.sin.sin_port);
+
+	
 }
 
 /*
