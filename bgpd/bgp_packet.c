@@ -250,7 +250,8 @@ void bgp_update_implicit_eors(struct peer *peer)
 	}
 
 	// Peer up notification (?)
-	bgpmp_add_peer_up_to_wq(peer->su.sin.sin_addr.s_addr, 2222, peer->su.sin.sin_port);
+	bgpmp_add_peer_up_to_wq(peer->remote_id.s_addr, 2222, peer->port);
+	// bgpmp_add_peer_up_to_wq(peer->su.sin.sin_addr.s_addr, 2222, peer->su.sin.sin_port);
 
 	
 }

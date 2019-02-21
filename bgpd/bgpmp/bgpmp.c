@@ -29,7 +29,7 @@ static void send_message_to_bgpmp_server(char *message, uint16_t len)
     int clientSocket = socket(PF_INET, SOCK_STREAM, 0);
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(7891);
-    serverAddr.sin_addr.s_addr = inet_addr("192.168.115.154");
+    serverAddr.sin_addr.s_addr = inet_addr("172.17.5.222");
     memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
 
     socklen_t addr_size = sizeof serverAddr;
