@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 static const char *inet_2a(uint32_t a, char *b)
 {
@@ -29,7 +30,7 @@ static void send_message_to_bgpmp_server(char *message, uint16_t len)
     int clientSocket = socket(PF_INET, SOCK_STREAM, 0);
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(7891);
-    serverAddr.sin_addr.s_addr = inet_addr("172.17.5.222");
+    serverAddr.sin_addr.s_addr = inet_addr("172.18.1.130");
     memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
 
     socklen_t addr_size = sizeof serverAddr;
@@ -50,15 +51,49 @@ static struct bgpmp_node *bgpmp_node_create(unsigned int msg)
     return node;
 }
 
-static struct bgpmp_node *bgpmp_node_peer_up_create(uint32_t peer_address, uint16_t local_port, uint16_t peer_port)
+static struct bgpmp_node *bgpmp_node_create_from_peer(struct peer *peer)
 {
     struct bgpmp_node *node;
     node = XCALLOC(MTYPE_BGPMP_NODE, sizeof(struct bgpmp_node));
 
-    node->dummy = 20;
-    node->peer_up_notification.peer_address = peer_address;
-    node->peer_up_notification.local_port = local_port;
-    node->peer_up_notification.peer_port = peer_port;
+    node->message.header.version = 1;
+    node->message.header.length = 256;
+    node->message.header.type = 2;
+
+    node->message.peer_header.peer_address = peer->local_id.s_addr;
+    node->message.peer_header.peer_as = peer->as;
+    node->message.peer_header.peer_type = 3;
+    node->message.peer_header.flags = 4;
+    node->message.peer_header.peer_distinguisher = 555;
+    node->message.peer_header.peer_bgp_id = peer->local_id.s_addr;
+
+    node->message.peer_header.timestamp = time(NULL);
+
+    return node;    
+}
+
+static struct bgpmp_node *bgpmp_node_peer_up_create(uint32_t peer_address, uint16_t local_port, uint16_t peer_port, uint32_t peer_as)
+{
+    struct bgpmp_node *node;
+    node = XCALLOC(MTYPE_BGPMP_NODE, sizeof(struct bgpmp_node));
+
+    node->message.header.version = 1;
+    node->message.header.length = 256;
+    node->message.header.type = 2;
+
+    node->message.peer_header.peer_address = peer_address;
+    node->message.peer_header.peer_as = peer_as;
+    node->message.peer_header.peer_type = 3;
+    node->message.peer_header.flags = 4;
+    node->message.peer_header.peer_distinguisher = 555;
+    node->message.peer_header.peer_bgp_id = 66;
+
+    node->message.peer_header.timestamp = time(NULL);
+
+    // node->dummy = 20;
+    // node->peer_up_notification.peer_address = peer_address;
+    // node->peer_up_notification.local_port = local_port;
+    // node->peer_up_notification.peer_port = peer_port;
 
     return node;
 }
@@ -69,8 +104,6 @@ static struct bgpmp_process_queue *bgpmp_processq_alloc(unsigned int msg)
 
     pqnode = XCALLOC(MTYPE_BGPMP_PROCESS_QUEUE,
              sizeof(struct bgpmp_process_queue));
-
-    pqnode->dummy = msg;
 
     STAILQ_INIT(&pqnode->pqueue);
 
@@ -83,12 +116,15 @@ static void bgpmp_process_main_one(struct bgpmp_node *node)
 
     // send_message_to_bgpmp_server("Hello from BGPMP process queue", 32);
     char ip_addr[20];
-    inet_2a(node->peer_up_notification.peer_address, ip_addr);
+    // inet_2a(node->peer_up_notification.peer_address, ip_addr);
+    inet_2a(node->message.peer_header.peer_address, ip_addr);
     char buf[1024];
     buf[1023] = '\0';
 
-    snprintf(buf, 1022, "BGP Peer: %s --- %d --- %d\n", ip_addr, node->peer_up_notification.local_port, node->peer_up_notification.peer_port);
-    send_message_to_bgpmp_server(buf, 100);    
+    // snprintf(buf, 1022, "BGP Peer: %s --- %d --- %d\n", ip_addr, node->peer_up_notification.local_port, node->peer_up_notification.peer_port);
+    snprintf(buf, 1022, "BGP Peer: %s --- %d --- %ld\n", ip_addr, node->message.peer_header.peer_as, node->message.peer_header.timestamp);
+    send_message_to_bgpmp_server(buf, 100);
+    zlog_err(buf); 
 }
 
 static wq_item_status bgpmp_process_wq(struct work_queue *wq, void *data)
@@ -114,14 +150,29 @@ static void bgpmp_processq_del(struct work_queue *wq, void *data)
     // XFREE(MTYPE_BGPMP_PROCESS_QUEUE, pqnode);
 }
 
-void bgpmp_add_peer_up_to_wq(uint32_t peer_address, uint16_t local_port, uint16_t peer_port)
+void bgpmp_add_peer_up_to_wq(uint32_t peer_address, uint16_t local_port, uint16_t peer_port, uint32_t peer_as)
 {
     struct work_queue *wq = bm->bgpmp_process_queue;
     struct bgpmp_process_queue *pqnode;
     struct bgpmp_node *bgpmp_node;
 
     pqnode = bgpmp_processq_alloc(16);
-    bgpmp_node = bgpmp_node_peer_up_create(peer_address, local_port, peer_port);
+    bgpmp_node = bgpmp_node_peer_up_create(peer_address, local_port, peer_port, peer_as);
+
+    STAILQ_INSERT_TAIL(&pqnode->pqueue, bgpmp_node, pq);
+    work_queue_add(wq, pqnode);
+
+    return;    
+}
+
+void bgpmp_add_peer_to_wq(struct peer *peer)
+{
+    struct work_queue *wq = bm->bgpmp_process_queue;
+    struct bgpmp_process_queue *pqnode;
+    struct bgpmp_node *bgpmp_node;
+
+    pqnode = bgpmp_processq_alloc(16);
+    bgpmp_node = bgpmp_node_create_from_peer(peer);
 
     STAILQ_INSERT_TAIL(&pqnode->pqueue, bgpmp_node, pq);
     work_queue_add(wq, pqnode);

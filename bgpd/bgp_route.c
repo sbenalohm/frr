@@ -2598,7 +2598,7 @@ void bgp_process(struct bgp *bgp, struct bgp_node *rn, afi_t afi, safi_t safi)
 
 	/* BGPMP Queue */
 	// bgpmp_add_to_wq(bgp->as);
-	bgpmp_add_peer_up_to_wq(bgp->router_id.s_addr, 15, 39);
+	bgpmp_add_peer_up_to_wq(bgp->router_id.s_addr, 15, 39, 12);
 
 
 
